@@ -22,7 +22,7 @@
 >  **Official code of SyncHuman: Synchronizing 2D and 3D Generative Models for Single-view Human Reconstruction**
 
 <div align="center">
-<a href='https://xishuxishu.github.io/SyncHuman.github.io/'><img src='https://img.shields.io/badge/arXiv-2509.19995-b31b1b.svg'></a> &nbsp;&nbsp;&nbsp;&nbsp;
+<a href='https://arxiv.org/pdf/2510.07723'><img src='https://img.shields.io/badge/arXiv-2510.07723-b31b1b.svg'></a> &nbsp;&nbsp;&nbsp;&nbsp;
 <a href='https://xishuxishu.github.io/SyncHuman.github.io/'><img src='https://img.shields.io/badge/Project-Page-Green'></a> &nbsp;&nbsp;&nbsp;&nbsp;
 <a href="https://huggingface.co/xishushu/SyncHuman"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Weights-HF-orange"></a> &nbsp;&nbsp;&nbsp;&nbsp;
 </div>
@@ -103,7 +103,7 @@ If you find this work useful, please cite our paper:
 @article{chen2025synchuman,
   title={SyncHuman: Synchronizing 2D and 3D Diffusion Models for Single-view Human Reconstruction},
   author={Wenyue Chen, Peng Li, Wangguandong Zheng, Chengfeng Zhao, Mengfei Li, Yaolong Zhu, Zhiyang Dou, Ronggang Wang, Yuan Liu},
-  journal={arXiv preprint arXiv:2509.19995},
+  journal={arXiv preprint arXiv:2510.07723},
   year={2025}
 }
 ```
