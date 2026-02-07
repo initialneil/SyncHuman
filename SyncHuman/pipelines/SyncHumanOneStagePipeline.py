@@ -377,12 +377,15 @@ class SyncHumanOneStagePipeline:
       
     
 
-    def load_img_face(self, img_path,  return_type='np', Imagefile=None):
+    def load_img_face(self, image_input,  return_type='np'):
        
-        if Imagefile is None:
-            image_input = Image.open(img_path)
+        if isinstance(image_input, str):
+            image_input = Image.open(image_input)
+        elif isinstance(image_input, Image.Image):
+            pass
         else:
-            image_input = Imagefile
+            raise ValueError(f"image_input must be a string path or PIL.Image.Image, got {type(image_input)}")
+        
         image_size = self.mv_img_wh[0]
 
         if self.mv_crop_size!=-1:
@@ -427,8 +430,9 @@ class SyncHumanOneStagePipeline:
         
         return img, face 
     
-    def get_mv_input(self,raw_img_path):
-        image,face =self.load_img_face(raw_img_path,return_type='pt')
+    def get_mv_input(self, raw_img):
+        image, face = self.load_img_face(raw_img, return_type='pt')
+        
         img_tensors_in = [
             image.permute(2, 0, 1)
         ] * (self.num_views-1) + [
@@ -597,43 +601,45 @@ class SyncHumanOneStagePipeline:
     @torch.no_grad()
     def run(
         self,
-        image_path: str,
+        image_path: Optional[Union[str, PIL.Image.Image]],
         save_path: str,
-        seed: int =43,
-        guidance_scale:float = 3.0
-       ):
+        seed: int = 43,
+        guidance_scale: float = 3.0
+        ):
         torch.manual_seed(seed)
-    
-        image_raw=Image.open(image_path)
-        imgs_in = torch.cat([self.get_mv_input(image_path)]*2, dim=0)
         
-            
+        if isinstance(image_path, str):
+            image_raw = Image.open(image_path)
+        elif isinstance(image_path, PIL.Image.Image):
+            image_raw = image_path
+        else:
+            raise ValueError("image_path must be a string path or PIL.Image.Image")
+        
+        imgs_in = torch.cat([self.get_mv_input(image_path)] * 2, dim=0)
+        
         with torch.autocast("cuda"):
-                
-            out ,voxel,coords= self.run_model(
-                imgs_in,image_raw, None, prompt_embeds=self.prompt_embeddings, 
+            out, voxel, coords = self.run_model(
+                imgs_in, image_raw, None, prompt_embeds=self.prompt_embeddings,
                 guidance_scale=guidance_scale, output_type='pt', num_images_per_prompt=1,
             )
-            out=out.images
+            out = out.images
             bsz = out.shape[0] // 2
             normals_pred = out[:bsz]
-            images_pred = out[bsz:] 
-                
+            images_pred = out[bsz:]
+            
             images_pred[0] = imgs_in[0]
             normals_face = F.interpolate(normals_pred[-1].unsqueeze(0), size=(256, 256), mode='bilinear', align_corners=False).squeeze(0)
-            normals_pred[0][:, :256, 256:512] =  normals_face 
-                    
+            normals_pred[0][:, :256, 256:512] = normals_face
+            
             os.makedirs(save_path, exist_ok=True)
-                    
-             
-            image_raw.save(os.path.join(save_path,'input.png'))
+            
+            image_raw.save(os.path.join(save_path, 'input.png'))
             save_images(images_pred, normals_pred, save_path)
-            save_coords_to_npz(coords, os.path.join(save_path,'latent.npz'))
+            save_coords_to_npz(coords, os.path.join(save_path, 'latent.npz'))
             voxels = voxel.unsqueeze(0)
             v = voxels.cpu().numpy()
             writeocc(v, save_path, "voxel.ply")
-
-
+        
         torch.cuda.empty_cache()    
         
 
